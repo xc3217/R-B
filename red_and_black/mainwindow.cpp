@@ -8,6 +8,7 @@
 #include<qtimer.h>
 #include<QMessageBox>
 static int afcount;
+static int livesum;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
      ui(new Ui::MainWindow)
@@ -30,7 +31,24 @@ MainWindow::MainWindow(QWidget *parent)
     ui->gamewidget->setCurrentWidget(ui->page);
     //nightbtn的设置
     connect(ui->nightbtn,&QPushButton::clicked,[=](){
-        MainWindow::nignt();
+        if(rand()%2==0)
+        {
+            nightstate=0;
+            ui->duihua->append("下面进入黑夜");
+            QMessageBox *box1=new QMessageBox;
+            box1->setText("下面进入黑夜");
+            box1->exec();
+    //        ui->gamewidget->setCurrentWidget(ui->eyewidget);
+        }
+        else
+           {
+            nightstate=1;
+            ui->duihua->append("下面进入红夜");
+            QMessageBox *box2=new QMessageBox;
+            box2->setText("下面进入红夜");
+            box2->exec();
+    //        ui->gamewidget->setCurrentWidget(ui->eyewidget);
+        }
         ui->gamewidget->setCurrentWidget(ui->eyewidget);
 
     });
@@ -64,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent)
             {ui->duihua->append("所有人讲话完毕");
                 ui->nextbtn->show();
                 voteoutfunc();
-                countsum2=1;
+                countsum2=0;
             }
         }
         if(ui->rightradioButton->isChecked())
@@ -100,6 +118,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->orderbtn,&QPushButton::clicked,[=](){
         speakorder();
         ui->gamewidget->setCurrentWidget(ui->afterjx);
+        if(ui->leftradioButton->isChecked())    ui->duihua->append("村长决定从左手边开始发言");
+        if(ui->rightradioButton->isChecked())   ui->duihua->append("村长决定从右手边开始发言");
 
     });
     //确认发言按钮,缺少发言完毕的判定
@@ -138,7 +158,8 @@ MainWindow::MainWindow(QWidget *parent)
         QMessageBox *votebox=new QMessageBox;
         votebox->setText("进入全民公投环节");
         ui->gamewidget->setCurrentWidget(ui->voteout);
-        voteoutfunc();
+        for(int i=1;i<=n;i++)
+            if(players[i].state==1) ui->voteoutbox->addItem(QString::number(i));
     });
 }
 void MainWindow:: paintEvent(QPaintEvent *)//设置开始背景
@@ -190,7 +211,7 @@ void  MainWindow::getNum()
 void   MainWindow::start()
 {   getNum();
     qDebug()<<"参与游戏的人数为"<<n;
-
+    livesum=n;
 }
 
 
@@ -247,7 +268,6 @@ void MainWindow::setplay()
         players[i].state=true;
         player[i]=1;
     }
-    livesum=rednum+blacknum;
 }
 //通过表格形式显示游戏玩家的信息
 void    MainWindow::playerinform()
@@ -314,7 +334,7 @@ void MainWindow::votecunzhang()
     {
         int p=ui->jxplayer->currentText().toInt();
         connect(ui->votebtn,&QPushButton::clicked,[=](){
-            players[p-1].points_votedcz+=1;
+            players[p].points_votedcz+=1;
             j++;
             if(j>jxsum)  ui->gamewidget->setCurrentWidget(ui->orderwidget);
         });
@@ -327,7 +347,7 @@ void MainWindow::votecunzhang()
         if(j==jxsum) break;
     }
 
-    if(jxsum==n)
+    if(jxsum==n||jxsum==0)
     {
         players[rand()%n+1].cunzhang=1;
         for(int czi=1;czi<=n;czi++)
@@ -370,66 +390,52 @@ void    MainWindow::getjxnum(){
 }
 
 void MainWindow::speakorder()
-{   for(int i=0;i<=n;i++)
+{    ui->leftradioButton->setChecked(false);
+     ui->rightradioButton->setChecked(false);
+    for(int i=0;i<=n;i++)
         players[i].jxcun=0;
     playerinform();
-    if(ui->leftradioButton->isChecked())    ui->duihua->append("村长决定从左手边开始发言");
-    if(ui->rightradioButton->isChecked())   ui->duihua->append("村长决定从右手边开始发言");
     ui->nextbtn->show();
 
 
 }
 
 void MainWindow::nignt()
-{
-    if(rand()%2==0)
-    {
-        nightstate=0;
-
-        ui->duihua->append("下面进入黑夜");
-        QMessageBox *box1=new QMessageBox;
-        box1->setText("下面进入黑夜");
-        box1->exec();
-        ui->gamewidget->setCurrentWidget(ui->eyewidget);
-    }
-    else
-       {
-        nightstate=1;
-        ui->duihua->append("下面进入红夜");
-        QMessageBox *box2=new QMessageBox;
-        box2->setText("下面进入红夜");
-        box2->exec();
-        ui->gamewidget->setCurrentWidget(ui->eyewidget);
-    }
-    static int redeye=0;
+{   static int redeye=0;
     static int blackeye=0;
-    static int eyenum=0;//记录序号
+    static int eyenum=1;//记录序号
     static  int eyesum=0;//记录人数
     connect(ui->openeye,&QPushButton::clicked,[=](){
-        eyenum++;
-        int livesum=rednum+blacknum;
-        if(player[eyenum]==1)
-        {
-            players[eyenum].eye=1;
-            if(players[eyenum].status==1)   redeye++;
-            if(players[eyenum].status==0)   blackeye++;
-            eyesum++;
+        while(players[eyenum].state==0){
+            eyenum++;
         }
-
-        if(eyesum==livesum) ui->gamewidget->setCurrentWidget(ui->afterjx);
+        players[eyenum].eye=1;
+        if(players[eyenum].status==1)   redeye++;
+        if(players[eyenum].status==0)   blackeye++;
+        eyesum++;
+        eyenum++;
+        if(eyesum==livesum)
+            {ui->gamewidget->setCurrentWidget(ui->orderwidget);
+            speakorder();
+            eyenum=1;
+            eyesum=0;
+            }
         ui->nightbtn->hide();
         playerinform();
     });
 
     connect(ui->eyeclose,&QPushButton::clicked,[=](){
-        eyenum++;
-        int live=rednum+blacknum;
-        if(player[eyenum]==1)
-        {
-            players[eyenum].eye=0;
-            eyesum++;
+        while(players[eyenum].state==0){
+            eyenum++;
         }
-        if(eyesum==livesum) ui->gamewidget->setCurrentWidget(ui->afterjx);
+        players[eyenum].eye=0;
+        eyesum++;
+        eyenum++;
+        if(eyesum==livesum) {ui->gamewidget->setCurrentWidget(ui->orderwidget);
+            speakorder();
+            eyesum=0;
+            eyenum=1;
+        }
         playerinform();
         ui->nightbtn->hide();
 
@@ -439,28 +445,21 @@ void MainWindow::nignt()
 
     }
     if(nightstate==0&&blackeye%2==0)    players[czid].point_have=1;
-
-
-
-
 }
 
 void MainWindow::voteoutfunc()//公投环节，缺少平票处理
-{
-    for(int i=1;i<=n;i++)
-        if(players[i].state==1) ui->voteoutbox->addItem(QString::number(i));
-    static int countsum=0;//记录序号
+{   static int countsum=0;//记录序号
     static int sum=0;//记录投票的人数
-    int livesum1=rednum+blacknum;
     connect(ui->voteoutbtn,&QPushButton::clicked,[=](){
-
-        countsum++;
-        int q=ui->voteoutbox->currentText().toInt();
-        if(player[countsum]==1)
-             {players[q].points_voted+=players[countsum].point_have;
-            sum++;
-        }
-        if(sum==livesum1)
+           while(players[countsum].state==1)
+           {
+               countsum++;
+           }
+           int q=ui->voteoutbox->currentText().toInt();
+           players[q].points_voted+=players[countsum].point_have;
+           countsum++;
+           sum++;
+        if(sum==livesum)
         {
             double maxsum=0;
             for(int i=1;i<=n;i++)
@@ -479,27 +478,30 @@ void MainWindow::voteoutfunc()//公投环节，缺少平票处理
                     ui->duihua->append("本次公投淘汰的玩家是");
                     ui->duihua->append(QString::number(j));
                     if(players[j].status==1)
-                    {   rednum--;
+                    {   rednum-=1;
+                        livesum-=1;
                         ui->duihua->append("他的身份是红色");
                         QMessageBox *box3=new QMessageBox;
                         box3->setText("有一名玩家被淘汰，身份为红色");
                         box3->exec();
                         players[j].points_voted=0;
 
+
                     }
                     else
-                    {   blacknum--;
+                    {   blacknum-=1;
+                        livesum-=1;
                         ui->duihua->append("他的身份是黑色");
                         QMessageBox *box4=new QMessageBox;
-                        box4->setText("有一名玩家被淘汰，身份为红色");
+                        box4->setText("有一名玩家被淘汰，身份为黑色");
                         box4->exec();
                          players[j].points_voted=0;
 
                     }
+                    ui->voteoutbox->clear();
                     break;
                 }
             }
-            qDebug()<<maxsum;
             sum=0;
             countsum=0;
             end();
@@ -515,7 +517,7 @@ void MainWindow::voteoutfunc()//公投环节，缺少平票处理
 
         countsum++;
         sum++;
-        if(sum==livesum1){
+        if(sum==livesum){
             end();
             playerinform();
             ui->gamewidget->setCurrentWidget(ui->afterjx);
@@ -524,7 +526,6 @@ void MainWindow::voteoutfunc()//公投环节，缺少平票处理
         }
 
     });
-    livesum=rednum+blacknum;
 }
 //游戏函数包括别的函数
 void MainWindow::game(){
@@ -534,6 +535,8 @@ void MainWindow::game(){
   setplay();
   jxbtn();
   playerinform();
+  MainWindow::nignt();
+  voteoutfunc();
 }
 
 

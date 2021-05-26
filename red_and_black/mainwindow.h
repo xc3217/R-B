@@ -21,11 +21,9 @@ public:
     ~MainWindow();
 
     //重写paintevent事件
-    void  paintEvent(QPaintEvent *);
-
-   void getNum();
-
-   void start();
+   void  paintEvent(QPaintEvent *);
+   void getNum();//获得游戏游玩总人数
+   void start();//游戏开始
    void end();//判断游戏结束
    void setplay();//初始化游戏进程
    void jxbtn();//竞选按钮
@@ -33,11 +31,10 @@ public:
    void playerinform();//设置角色信息的显示
    void votecunzhang();//村长竞选
    void speakorder();//决定发言顺序
-   void jxspeak();
    void getjxnum();//获得竞选人数
    void  nignt();//夜晚情况
-   void voteoutfunc();
-   void randcunz();//随机生成村长人选
+   void voteoutfunc();//公投环节的投人出局函数
+
 
 
 
@@ -53,7 +50,6 @@ private:
     int czid;
     bool nightstate;//0表示黑夜，1表示红夜
     int player[11];
-    int livesum;
 
 };
 
