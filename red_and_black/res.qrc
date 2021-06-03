@@ -3,5 +3,7 @@
         <file>res/beijing.jpg</file>
         <file>res/windowicon.jpg</file>
         <file>res/scene1.jpg</file>
+        <file>res/startbtn.png</file>
+        <file>res/bgm.wav</file>
     </qresource>
 </RCC>

@@ -7,7 +7,7 @@ struct Gameplayer{
     bool    cunzhang;//1表示是村长，0表示不是村长
     double  points_voted;//记录公投环节所获得的的票数
     double  point_have;//记录该玩家可以使用的票数
-    double  points_votedcz;//记录投村长环节获得的票数
+    double  points_votedcz=0;//记录投村长环节获得的票数
     bool    jxcun;//1表示是否要竞选担任村长
     bool    eye;//1表示睁眼
     int ID;//记录玩家序号

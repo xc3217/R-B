@@ -51,6 +51,7 @@ private:
     bool nightstate;//0表示黑夜，1表示红夜
     int player[11];
 
+
 };
 
 
